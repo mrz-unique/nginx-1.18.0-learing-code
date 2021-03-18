@@ -139,7 +139,7 @@ int  ngx_ssl_stapling_index;
 ngx_int_t
 ngx_ssl_init(ngx_log_t *log)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x10100003L
+#if OPENSSL_VERSION_NUMBER >= 0x10100003L								//不同版本openssl延用不同初始化
 
     if (OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, NULL) == 0) {
         ngx_ssl_error(NGX_LOG_ALERT, log, 0, "OPENSSL_init_ssl() failed");
@@ -164,7 +164,7 @@ ngx_ssl_init(ngx_log_t *log)
 
 #endif
 
-#ifndef SSL_OP_NO_COMPRESSION
+#ifndef SSL_OP_NO_COMPRESSION		//MRZTODO
     {
     /*
      * Disable gzip compression in OpenSSL prior to 1.0.0 version,
@@ -182,6 +182,7 @@ ngx_ssl_init(ngx_log_t *log)
     }
 #endif
 
+	/* 以下全部为新建ssl所需的索引 */
     ngx_ssl_connection_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
 
     if (ngx_ssl_connection_index == -1) {

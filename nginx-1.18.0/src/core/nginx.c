@@ -201,12 +201,14 @@ main(int argc, char *const *argv)
     ngx_conf_dump_t  *cd;
     ngx_core_conf_t  *ccf;
 
+	/* solaris、linux、posix跳过，darwin、freebsd进入。*/
     ngx_debug_init();
 
     if (ngx_strerror_init() != NGX_OK) {
         return 1;
     }
 
+	/* 校验入参 */
     if (ngx_get_options(argc, argv) != NGX_OK) {
         return 1;
     }
@@ -223,13 +225,15 @@ main(int argc, char *const *argv)
 
     ngx_time_init();
 
-#if (NGX_PCRE)
+#if (NGX_PCRE)	//在配置文件、编译文件里定义
+	/* 初始化PCRE的malloc和free函数指针 */
     ngx_regex_init();
 #endif
 
-    ngx_pid = ngx_getpid();
-    ngx_parent = ngx_getppid();
+    ngx_pid = ngx_getpid();								//获得进程id
+    ngx_parent = ngx_getppid();							//获得父进程id
 
+	/* 初始化日志句柄*/
     log = ngx_log_init(ngx_prefix);
     if (log == NULL) {
         return 1;
@@ -237,6 +241,7 @@ main(int argc, char *const *argv)
 
     /* STUB */
 #if (NGX_OPENSSL)
+	/* SSL初始化 */
     ngx_ssl_init(log);
 #endif
 
