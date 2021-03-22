@@ -37,17 +37,17 @@ struct ngx_shm_zone_s {
 
 
 struct ngx_cycle_s {
-    void                  ****conf_ctx;
-    ngx_pool_t               *pool;
+    void                  ****conf_ctx;						//配置上下文数组(含所有模块)
+    ngx_pool_t               *pool;							//内存池
 
-    ngx_log_t                *log;
-    ngx_log_t                 new_log;
+    ngx_log_t                *log;							//日志
+    ngx_log_t                 new_log;						//中转的日志，在ngx_init_cycle的时候产生一个日志初始化，再 log = &new_log
 
     ngx_uint_t                log_use_stderr;  /* unsigned  log_use_stderr:1; */
 
-    ngx_connection_t        **files;
-    ngx_connection_t         *free_connections;
-    ngx_uint_t                free_connection_n;
+    ngx_connection_t        **files;						//连接文件
+    ngx_connection_t         *free_connections;				//空闲连接，起始地址
+    ngx_uint_t                free_connection_n;			//空闲连接数量
 
     ngx_module_t            **modules;
     ngx_uint_t                modules_n;

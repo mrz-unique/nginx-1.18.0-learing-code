@@ -213,13 +213,13 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     ngx_strlow(cycle->hostname.data, (u_char *) hostname, cycle->hostname.len);
 
 
-    if (ngx_cycle_modules(cycle) != NGX_OK) {
+    if (ngx_cycle_modules(cycle) != NGX_OK) {				//赋值cycle里的模块结构体
         ngx_destroy_pool(pool);
         return NULL;
     }
 
 
-    for (i = 0; cycle->modules[i]; i++) {
+    for (i = 0; cycle->modules[i]; i++) {					//核心模块进行配置创建
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
         }
