@@ -7,7 +7,8 @@
 LC_ALL=C
 export LC_ALL
 
-. auto/options
+# . ./auto/options  <==>  source ./auto/options
+. auto/options															# 定义目录和指定编译选项(包括内置模块是否加载 --help)
 . auto/init
 . auto/sources
 
