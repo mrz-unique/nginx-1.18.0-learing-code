@@ -20,7 +20,7 @@ ngx_create_pool(size_t size, ngx_log_t *log)
 {
     ngx_pool_t  *p;
 
-    p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);
+    p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);		//不同系统有不同memalign，详见注释
     if (p == NULL) {
         return NULL;
     }

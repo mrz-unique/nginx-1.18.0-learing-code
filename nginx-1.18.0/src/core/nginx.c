@@ -254,7 +254,7 @@ main(int argc, char *const *argv)
     init_cycle.log = log;
     ngx_cycle = &init_cycle;
 
-    init_cycle.pool = ngx_create_pool(1024, log);
+    init_cycle.pool = ngx_create_pool(1024, log);		//创建内存池
     if (init_cycle.pool == NULL) {
         return 1;
     }
