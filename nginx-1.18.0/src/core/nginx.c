@@ -289,7 +289,7 @@ main(int argc, char *const *argv)
         return 1;
     }
 
-    if (ngx_preinit_modules() != NGX_OK) {
+    if (ngx_preinit_modules() != NGX_OK) {						//初始化cycle前的模块参数初始化
         return 1;
     }
 
