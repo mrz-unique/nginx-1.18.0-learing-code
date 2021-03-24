@@ -8,37 +8,39 @@ LC_ALL=C
 export LC_ALL
 
 # . ./auto/options  <==>  source ./auto/options
-. auto/options															# 定义目录和指定编译选项(包括内置模块是否加载 --help)
-. auto/init
-. auto/sources
+. auto/options															# 定义目录和指定编译选项(包括内置模块是否加载，--help查看)
+. auto/init																# 初始化makefile的信息，创建makefile(包括 clean)
+. auto/sources															# 定义核心模块和组件模块源文件、依赖的变量，变量里存文件名
 
-test -d $NGX_OBJS || mkdir -p $NGX_OBJS
+test -d $NGX_OBJS || mkdir -p $NGX_OBJS									# 如果没有则生成 ./objs 文件夹
 
-echo > $NGX_AUTO_HEADERS_H
-echo > $NGX_AUTOCONF_ERR
+echo > $NGX_AUTO_HEADERS_H												# 清空 ./objs/ngx_auto_headers.h
+echo > $NGX_AUTOCONF_ERR												# 清空 ./objs/autoconf.err
 
 echo "#define NGX_CONFIGURE \"$NGX_CONFIGURE\"" > $NGX_AUTO_CONFIG_H
+# 将configure脚本调用时的所有参数定义到 ./objs/ngx_auto_headers.h 文件里
 
 
-if [ $NGX_DEBUG = YES ]; then
-    have=NGX_DEBUG . auto/have
+# auto/have 作用：添加到./objs/ngx_auto_headers.h 文件里
+if [ $NGX_DEBUG = YES ]; then											# --with-debug 选项开启 NGX_DEBUG
+    have=NGX_DEBUG . auto/have											# 将have=NGX_DEBUG 添加到./objs/ngx_auto_headers.h 文件里
 fi
 
 
-if test -z "$NGX_PLATFORM"; then
+if test -z "$NGX_PLATFORM"; then										# --crossbuild 参数没指定进入
     echo "checking for OS"
 
-    NGX_SYSTEM=`uname -s 2>/dev/null`
-    NGX_RELEASE=`uname -r 2>/dev/null`
-    NGX_MACHINE=`uname -m 2>/dev/null`
+    NGX_SYSTEM=`uname -s 2>/dev/null`									# 操作系统         e.g."Linux"
+    NGX_RELEASE=`uname -r 2>/dev/null`									# 内核版本         e.g."3.10.0-957.21.3.el7.x86_64"
+    NGX_MACHINE=`uname -m 2>/dev/null`									# 架构           e.g."x86_64"
 
     echo " + $NGX_SYSTEM $NGX_RELEASE $NGX_MACHINE"
 
-    NGX_PLATFORM="$NGX_SYSTEM:$NGX_RELEASE:$NGX_MACHINE";
+    NGX_PLATFORM="$NGX_SYSTEM:$NGX_RELEASE:$NGX_MACHINE";				# 平台，三个参数
 
     case "$NGX_SYSTEM" in
         MINGW32_* | MINGW64_* | MSYS_*)
-            NGX_PLATFORM=win32
+            NGX_PLATFORM=win32											# 如果是32位系统
         ;;
     esac
 

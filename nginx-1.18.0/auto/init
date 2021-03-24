@@ -2,9 +2,9 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
-
-NGX_MAKEFILE=$NGX_OBJS/Makefile
-NGX_MODULES_C=$NGX_OBJS/ngx_modules.c
+# NGX_OBJS 默认是obj, --builddir 可以修改
+NGX_MAKEFILE=$NGX_OBJS/Makefile										# 默认 objs/Makefile
+NGX_MODULES_C=$NGX_OBJS/ngx_modules.c								# 默认 objs/ngx_modules.c
 
 NGX_AUTO_HEADERS_H=$NGX_OBJS/ngx_auto_headers.h
 NGX_AUTO_CONFIG_H=$NGX_OBJS/ngx_auto_config.h
