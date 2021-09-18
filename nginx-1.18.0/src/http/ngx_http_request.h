@@ -179,8 +179,10 @@ typedef struct {
 
 
 typedef struct {
+	/* 所有解析过的HTTP头部都在hearders链表中，可以通过遍历链表的方法获取所有的HTTP头部，每一个元素都是ngx_table_elt_t成员 */
     ngx_list_t                        headers;
 
+	/* 以下所有ngx_table_elt_t成员都是RFC2616规范定义的HTTP头部，他们实际指向headers链表中的相应成员。当他们为NULL时，表示没有解析到相应的HTTP头部 */
     ngx_table_elt_t                  *host;
     ngx_table_elt_t                  *connection;
     ngx_table_elt_t                  *if_modified_since;
@@ -401,7 +403,7 @@ struct ngx_http_request_s {
     time_t                            start_sec;
     ngx_msec_t                        start_msec;
 
-    ngx_uint_t                        method;
+    ngx_uint_t                        method;					//方法名(GET|POST|...) uint
     ngx_uint_t                        http_version;
 
     ngx_str_t                         request_line;
@@ -410,7 +412,7 @@ struct ngx_http_request_s {
     ngx_str_t                         exten;
     ngx_str_t                         unparsed_uri;
 
-    ngx_str_t                         method_name;
+    ngx_str_t                         method_name;				//方法名(GET|POST|...) string
     ngx_str_t                         http_protocol;
     ngx_str_t                         schema;
 

@@ -45,6 +45,7 @@ struct ngx_cycle_s {
 
     ngx_uint_t                log_use_stderr;  /* unsigned  log_use_stderr:1; */
 
+    ngx_uint_t                files_n;
     ngx_connection_t        **files;						//连接文件
     ngx_connection_t         *free_connections;				//空闲连接，起始地址
     ngx_uint_t                free_connection_n;			//空闲连接数量
@@ -56,30 +57,51 @@ struct ngx_cycle_s {
     ngx_queue_t               reusable_connections_queue;
     ngx_uint_t                reusable_connections_n;
 
+	/* 动态数组，每个数组元素存储着ngx_listening_t成员，表示监听端口和相关的参数 */
     ngx_array_t               listening;
+	
+	/* 动态数组容器，保存Nginx所有要操作的目录。如果有目录不存在，则会试图创建，而创建目录失败将会导致
+	Nginx启动失败。例如，上传文件的临时目录也在pathes中，如果没有权限创建，则会导致Nginx无法启动 */
     ngx_array_t               paths;
 
     ngx_array_t               config_dump;
     ngx_rbtree_t              config_dump_rbtree;
     ngx_rbtree_node_t         config_dump_sentinel;
 
+	/* 单链表容器，元素类型时ngx_open_file_t结构体，表示Nginx已经打开的所有文件。事实上，Nginx框架不会
+	向open_files链表中添加文件，而是由对此感兴趣的模块向其中添加文件路径名，Nginx框架会在ngx_init_cycle
+	方法中打开这些文件 */
     ngx_list_t                open_files;
+
+	/* 单链表容器，元素类型是ngx_shm_zone_t结构体，每个元素表示一块共享内存 */
     ngx_list_t                shared_memory;
 
+	/* 当前进程所有连接对象的总数，与下面的connections成员配合使用 */
     ngx_uint_t                connection_n;
-    ngx_uint_t                files_n;
-
+	/* 指向当前进程中的所有连接对象 */
     ngx_connection_t         *connections;
+
+	/* 指向当前进程中的所有读事件对象，connection_n同时表示所有读事件的总数 */
     ngx_event_t              *read_events;
+	/* 指向当前进程中的所有写事件对象，connection_n同时表示所有写事件的总数 */
     ngx_event_t              *write_events;
 
+	/* 旧的ngx_cycle_t对象用于引用上一个ngx_cycle_t对象中的成员。例如ngx_init_cycle方法，在启动初期，需
+	要建立一个临时的ngx_cycle_t对象保存一些变量，再调用ngx_init_cycle方法时就可以把旧的ngx_cycle_t对象
+	传进去，而这时old_cycle对象就会保存这个前期的ngx_cycle_t对象 */
     ngx_cycle_t              *old_cycle;
 
+	/* 配置文件相对于安装目录的路径名称 */
     ngx_str_t                 conf_file;
+	/* Nginx处理配置文件时需要特殊处理的在命令行携带的参数，一般是-g选项携带的参数 */
     ngx_str_t                 conf_param;
+	/* Nginx配置文件所在目录的路径 */
     ngx_str_t                 conf_prefix;
+	/* Nginx安装目录的路径 */
     ngx_str_t                 prefix;
+	/* 用于进程间同步的文件锁名称 */
     ngx_str_t                 lock_file;
+	/* 使用gethostname系统调用得到的主机名 */
     ngx_str_t                 hostname;
 };
 
