@@ -264,7 +264,8 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
     ngx_event_process_posted(cycle, &ngx_posted_events);
 }
 
-
+/* 将读事件添加到事件驱动模块中，这样该事件对应的TCP连接上一旦出现读事件(如
+接收到TCP连接另一端发送来的字符流)就会回调该事件的handler方法 */
 ngx_int_t
 ngx_handle_read_event(ngx_event_t *rev, ngx_uint_t flags)
 {
@@ -332,7 +333,9 @@ ngx_handle_read_event(ngx_event_t *rev, ngx_uint_t flags)
     return NGX_OK;
 }
 
-
+/* 将写事件添加到事件驱动模块中，wev是要操作的事件，lowat表示只有当连接对应的套接字
+缓冲区中必须有lowat大小的可用空间时，时间接收器(如select或者epoll_wait调用)才能处理
+这个可写事件(lowat参数为0时不考虑缓冲区大小) */
 ngx_int_t
 ngx_handle_write_event(ngx_event_t *wev, size_t lowat)
 {

@@ -28,19 +28,30 @@ typedef struct {
 
 
 struct ngx_event_s {
+    /* 事件相关的对象。通常data都是指向ngx_connection_t连接对象。开启文件异步I/O时
+它可能指向ngx_event_aio_t结构体 */
     void            *data;
 
+    /* 1代表事件是可写的。通常情况，它表示对应的TCP连接目前状态是可写的，连接处于
+可以发送网络包的状态 */
     unsigned         write:1;
 
+    /* 1代表此事件可以建立新的连接。通常情况，在ngx_cycle_t中的listening动态数组中，
+每一个监听对象ngx_listening_t对应的读事件中的accept标志位才会是1 */
     unsigned         accept:1;
 
     /* used to detect the stale events in kqueue and epoll */
+    /* 这个标志位用于区分当前事件是否是过期的，他仅仅是给事件驱动模块使用的，而事件
+消费模块可不用关心。为什么需要这个标志位？当开始处理一批事件时，处理前面的事件可能会
+关闭一些连接，而这些连接有可能影响这批事件中未处理到的后面的事件。这时可通过instance
+标志位来避免处理后面的已经过期的事件。*/
     unsigned         instance:1;
 
     /*
      * the event was passed or would be passed to a kernel;
      * in aio mode - operation was posted.
-     */
+     标志位，为1时表示当前事件是活跃的，为0时表示事件是不活跃的。这个状态对应着事件
+驱动模块处理方式的不同。 */
     unsigned         active:1;
 
     unsigned         disabled:1;
@@ -48,22 +59,31 @@ struct ngx_event_s {
     /* the ready event; in aio mode 0 means that no operation can be posted */
     unsigned         ready:1;
 
+    /* 只对kqueue、eventport有效，对linux的epoll事件驱动模块无效 */
     unsigned         oneshot:1;
 
-    /* aio operation is complete */
+    /* aio operation is complete，用于异步aio事件的处理 */
     unsigned         complete:1;
 
+    // 标志位，1表示当前处理的字符流已结束
     unsigned         eof:1;
+    // 标志位，1表示事件在处理过程中出现错误
     unsigned         error:1;
 
+    // 标志位，1表示事件超时，用以提示时间的消费模块做超时处理
     unsigned         timedout:1;
+    // 标志位，1表示这个事件存在于定时器中
     unsigned         timer_set:1;
 
+    // 标志位，1表示需要延迟处理这个事件，仅用于限速功能
     unsigned         delayed:1;
 
+    /* 标志位，1表示延迟建立TCP连接，就是说经过TCP三次握手后并不建立连接，而是要等
+到真正收到数据包后才会建立TCP连接 */
     unsigned         deferred_accept:1;
 
     /* the pending eof reported by kqueue, epoll or in aio chain operation */
+    /* 标志位，1表示等待字符流结束 */
     unsigned         pending_eof:1;
 
     unsigned         posted:1;
@@ -100,6 +120,7 @@ struct ngx_event_s {
 
     int              available;
 
+    // 这个事件发生时的处理方法，每个事件消费模块都会重新实现它
     ngx_event_handler_pt  handler;
 
 
@@ -109,11 +130,15 @@ struct ngx_event_s {
 
     ngx_uint_t       index;
 
+    // 用于记录error_log日志的ngx_log_t对象
     ngx_log_t       *log;
 
+    /* 定时器节点，用于定时器红黑树中 */
     ngx_rbtree_node_t   timer;
 
     /* the posted queue */
+    /* post事件会构成一个队列再统一处理，这个队列以next和prev作为链表指针，以此构成
+一个简易的双向链表，其中next指向后一个事件的地址 ，prev指向前一个事件的地址 */
     ngx_queue_t      queue;
 
 #if 0
