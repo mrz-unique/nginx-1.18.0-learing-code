@@ -31,6 +31,7 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
     root = &tree->root;
     sentinel = tree->sentinel;
 
+    // insert第一个node时操作
     if (*root == sentinel) {
         node->parent = NULL;
         node->left = sentinel;
@@ -41,22 +42,68 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
         return;
     }
 
+    /*
+    ngx_rbtree_init()初始化insert函数指针，自定义函数，如下：
+
+    #define ngx_rbtree_init(tree, s, i)                                           \
+    ngx_rbtree_sentinel_init(s);                                              \
+    (tree)->root = s;                                                         \
+    (tree)->sentinel = s;                                                     \
+    (tree)->insert = i
+
+    ngx_rbtree_init(&ngx_event_timer_rbtree, &ngx_event_timer_sentinel,
+                        ngx_rbtree_insert_timer_value);
+
+    void
+    ngx_rbtree_insert_timer_value(ngx_rbtree_node_t *temp, ngx_rbtree_node_t *node,
+        ngx_rbtree_node_t *sentinel)
+    {
+        ngx_rbtree_node_t  **p;
+
+        // 此循环为搜索叶子节点
+        for ( ;; ) {
+            p = ((ngx_rbtree_key_int_t) (node->key - temp->key) < 0)
+                ? &temp->left : &temp->right;
+
+            // 末尾节点为sentinel，即为找到插入位置
+            if (*p == sentinel) {
+                break;
+            }
+
+            // temp记录当前地址，在break之前保存的是插入位置的父节点
+            temp = *p;
+        }
+
+        *p = node;
+        node->parent = temp;
+        node->left = sentinel;
+        node->right = sentinel;
+        ngx_rbt_red(node);      // 新插入节点都为红node
+    }
+
+    temp为insert传入的*root指针，当返回时，*root指向的是插入node的父节点
+    */
     tree->insert(*root, node, sentinel);
 
     /* re-balance tree */
 
+    // 第一次如果node和插入node父节点不同 && 父节点和node都是红色(红黑树没有连续的两个红色节点)则进入while循环
     while (node != *root && ngx_rbt_is_red(node->parent)) {
 
+        // 如果node节点的父节点是node节点的爷爷节点的左节点
         if (node->parent == node->parent->parent->left) {
             temp = node->parent->parent->right;
 
+            // 如果node节点的爷爷节点的右子节点是红色
             if (ngx_rbt_is_red(temp)) {
                 ngx_rbt_black(node->parent);
                 ngx_rbt_black(temp);
                 ngx_rbt_red(node->parent->parent);
                 node = node->parent->parent;
 
+            // 如果node节点的爷爷节点的右子节点是黑色
             } else {
+                // 如果node节点是node节点的父节点的右子节点，先左旋，改色后右旋；如果node节点是node节点的父节点的左子节点，改色后直接右旋
                 if (node == node->parent->right) {
                     node = node->parent;
                     ngx_rbtree_left_rotate(root, sentinel, node);
@@ -67,16 +114,20 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
                 ngx_rbtree_right_rotate(root, sentinel, node->parent->parent);
             }
 
+        // 如果node节点的父节点是node节点的爷爷节点的右节点
         } else {
             temp = node->parent->parent->left;
 
+            // 如果node节点的爷爷节点的左子节点是红色
             if (ngx_rbt_is_red(temp)) {
                 ngx_rbt_black(node->parent);
                 ngx_rbt_black(temp);
                 ngx_rbt_red(node->parent->parent);
                 node = node->parent->parent;
 
+            // 如果node节点的爷爷节点的左子节点是黑色
             } else {
+                // 如果node节点是node节点的父节点的左子节点，先右旋，改色后左旋；如果node节点是node节点的父节点的右子节点，改色后直接左旋
                 if (node == node->parent->left) {
                     node = node->parent;
                     ngx_rbtree_right_rotate(root, sentinel, node);
@@ -314,7 +365,7 @@ ngx_rbtree_delete(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
     ngx_rbt_black(temp);
 }
 
-
+// 左旋，与二叉树操作相同
 static ngx_inline void
 ngx_rbtree_left_rotate(ngx_rbtree_node_t **root, ngx_rbtree_node_t *sentinel,
     ngx_rbtree_node_t *node)
@@ -344,7 +395,7 @@ ngx_rbtree_left_rotate(ngx_rbtree_node_t **root, ngx_rbtree_node_t *sentinel,
     node->parent = temp;
 }
 
-
+// 右旋，与二叉树操作相同
 static ngx_inline void
 ngx_rbtree_right_rotate(ngx_rbtree_node_t **root, ngx_rbtree_node_t *sentinel,
     ngx_rbtree_node_t *node)
