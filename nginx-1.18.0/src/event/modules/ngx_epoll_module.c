@@ -584,8 +584,10 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
     ngx_connection_t    *c;
     struct epoll_event   ee;
 
+    //每个事件的data成员存放着其对应的ngx_connection_t连接
     c = ev->data;
 
+    //下面会根据event参数确定当前事件是读事件还是写事件，这会决定events是加上EPOLLIN标志还是EPOLLOUT标志位
     events = (uint32_t) event;
 
     if (event == NGX_READ_EVENT) {
@@ -623,7 +625,11 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, ev->log, 0,
                    "epoll add event: fd:%d op:%d ev:%08XD",
                    c->fd, op, ee.events);
-
+/*
+    #include <sys/epoll.h>
+    int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+    epoll的事件注册函数，epoll_ctl向 epoll对象中添加、修改或者删除感兴趣的事件，返回0表示成功，否则返回–1。
+*/
     if (epoll_ctl(ep, op, c->fd, &ee) == -1) {
         ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_errno,
                       "epoll_ctl(%d, %d) failed", op, c->fd);
