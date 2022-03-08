@@ -189,7 +189,7 @@ ngx_module_t  ngx_event_core_module = {
     NGX_MODULE_V1_PADDING
 };
 
-
+// 既会处理普通的网络事件，也会处理定时器事件
 void
 ngx_process_events_and_timers(ngx_cycle_t *cycle)
 {
@@ -216,6 +216,8 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
     }
 
     if (ngx_use_accept_mutex) {
+        /* ngx_accept_disabled的用法很简单，当它为负数时，不会进行触发负载均衡操作；而当ngx_accept_disabled是正数时，就会触发Nginx进行负载均衡操作了。
+        Nginx的做法也很简单，就是当ngx_accept_disabled是正数时当前进程将不再处理新连接事件，取而代之的仅仅是ngx_accept_disabled值减1 */
         if (ngx_accept_disabled > 0) {
             ngx_accept_disabled--;
 
@@ -242,25 +244,33 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
         timer = 0;
     }
 
+
+    /* start 调用 ngx_process_events 方法，计算出耗时delta时间
+       (推测)如果当前有其他模块超时，ngx_process_events会被赋予函数指针 */
     delta = ngx_current_msec;
 
     (void) ngx_process_events(cycle, timer, flags);
 
     delta = ngx_current_msec - delta;
+    // end
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "timer delta: %M", delta);
 
+    // 执行ngx_posted_accept_events队列里的新建事件
     ngx_event_process_posted(cycle, &ngx_posted_accept_events);
 
+    // 如果打开了accept_mutex并且当前进程抢到了锁，在处理完所有新建事件后释放锁
     if (ngx_accept_mutex_held) {
         ngx_shmtx_unlock(&ngx_accept_mutex);
     }
 
+    // 如果delta时间大于0，执行所有超时事件
     if (delta) {
         ngx_event_expire_timers();
     }
 
+    // 执行ngx_posted_accept_events队列里的已建连事件
     ngx_event_process_posted(cycle, &ngx_posted_events);
 }
 
