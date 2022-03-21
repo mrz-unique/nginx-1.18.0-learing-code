@@ -852,6 +852,46 @@ ngx_http_handler(ngx_http_request_t *r)
 }
 
 
+/*  ngx_http_core_run_phases
+    HTTP框架核心
+    大部分http模块在此运行，按阶段处理请求。
+
+typedef enum {
+    // 在接收到完整的HTTP头部后处理的HTTP阶段
+    NGX_HTTP_POST_READ_PHASE = 0,
+
+    // 在将请求的URI与location表达式匹配前，修改请求的URI(所谓的重定向)是一个独立的HTTP阶段
+    NGX_HTTP_SERVER_REWRITE_PHASE,
+
+    // 根据请求的URI寻找匹配的location表达式，这个阶段只能由ngx_http_core_module模块实现，不建议其他HTTP模块重新定义这一阶段的行为
+    NGX_HTTP_FIND_CONFIG_PHASE,
+
+    // 在NGX_HTTP_FIND_CONFIG_PHASE阶段寻找到匹配的location之后再修改请求的URI
+    NGX_HTTP_REWRITE_PHASE,
+
+    // 这一阶段是用于在rewrite重写URL后，防止错误的nginx.conf配置导致死循环(递归地修改URI)，因此，这一阶段仅由ngx_http_core_module模块处理。
+    // 目前，控制死循环的方式很简单，首先检查rewrite的次数，如果一个请求超过10次重定向，就认为进入了rewrite死循环，这时在NGX_HTTP_POST_REWRITE_PHASE阶段就会向用户返回500，表示服务器内部错误
+    NGX_HTTP_POST_REWRITE_PHASE,
+
+    // 表示在处理NGX_HTTP_ACCESS_PHASE阶段决定请求的访问权限前，HTTP模块可以介入的处理阶段
+    NGX_HTTP_PREACCESS_PHASE,
+
+    // 这个阶段用于让HTTP模块判断是否允许这个请求访问Nginx服务器
+    NGX_HTTP_ACCESS_PHASE,
+    // 在NGX_HTTP_ACCESS_PHASE阶段中，当HTTP模块的handler处理函数返回不允许访问的错误码时(实际就是NGX_HTTP_FORBIDDEN或者NGX_HTTP_UNAUTHORIZED)，
+    // 这里将负责向用户发送拒绝服务的错误响应。因此，这个阶段实际上用于给NGX_HTTP_ACCESS_PHASE阶段收尾
+    NGX_HTTP_POST_ACCESS_PHASE,
+
+    NGX_HTTP_PRECONTENT_PHASE,
+
+    // 用于处理HTTP请求内容的阶段，这是大部分HTTP模块最愿意介入的阶段
+    NGX_HTTP_CONTENT_PHASE,
+
+    // 处理完请求后记录日志的阶段。例如，ngx_http_log_module模块就在这个阶段中加入了一个handler处理方法，使得每个HTTP请求处理完毕后会记录
+    // access_log访问日志
+    NGX_HTTP_LOG_PHASE
+} ngx_http_phases;
+*/
 void
 ngx_http_core_run_phases(ngx_http_request_t *r)
 {

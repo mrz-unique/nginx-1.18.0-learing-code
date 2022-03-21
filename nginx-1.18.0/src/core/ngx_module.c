@@ -10,7 +10,7 @@
 #include <ngx_core.h>
 
 
-#define NGX_MAX_DYNAMIC_MODULES  128
+#define NGX_MAX_DYNAMIC_MODULES  128        // 动态模块最多加载128个
 
 
 static ngx_uint_t ngx_module_index(ngx_cycle_t *cycle);
@@ -21,7 +21,7 @@ static ngx_uint_t ngx_module_ctx_index(ngx_cycle_t *cycle, ngx_uint_t type,
 ngx_uint_t         ngx_max_module;
 static ngx_uint_t  ngx_modules_n;
 
-
+/* 顺序遍历ngx_modules数组，设置每个静态模块的index成员 */
 ngx_int_t
 ngx_preinit_modules(void)
 {
@@ -32,8 +32,8 @@ ngx_preinit_modules(void)
         ngx_modules[i]->name = ngx_module_names[i];
     }
 
-    ngx_modules_n = i;
-    ngx_max_module = ngx_modules_n + NGX_MAX_DYNAMIC_MODULES;
+    ngx_modules_n = i;                                              // 数组里静态模块的数量
+    ngx_max_module = ngx_modules_n + NGX_MAX_DYNAMIC_MODULES;       // 最大模块数为静态模块的数量加上128
 
     return NGX_OK;
 }

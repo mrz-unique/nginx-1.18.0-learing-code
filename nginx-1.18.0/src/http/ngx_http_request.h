@@ -371,7 +371,7 @@ typedef void (*ngx_http_event_handler_pt)(ngx_http_request_t *r);
 
 
 struct ngx_http_request_s {
-    uint32_t                          signature;         /* "HTTP" */
+    uint32_t                          signature;         /* "HTTP"的ASCII码 */
 
     ngx_connection_t                 *connection;
 

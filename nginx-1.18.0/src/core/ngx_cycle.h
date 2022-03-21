@@ -38,6 +38,14 @@ struct ngx_shm_zone_s {
 
 struct ngx_cycle_s {
     void                  ****conf_ctx;						//配置上下文数组(含所有模块)
+    /*  void ****conf_ctx 结构简化理解：
+        ==> 
+        typedef void**          void_array;         // 即void*[],存储void*的数组
+        typedef void_array**    void_muti_array;    // 即void_array*[]
+        void_multi_array        conf_ctx;           // 定义conf_ctx
+        conf_ctx实际上是一个二维数组，对应模块的配置或者结构体存储。
+        */
+
     ngx_pool_t               *pool;							//内存池
 
     ngx_log_t                *log;							//日志
@@ -107,13 +115,13 @@ struct ngx_cycle_s {
 
 
 typedef struct {
-    ngx_flag_t                daemon;
-    ngx_flag_t                master;
+    ngx_flag_t                daemon;                   // 守护进程标志位
+    ngx_flag_t                master;                   // master进程标志位
 
     ngx_msec_t                timer_resolution;
     ngx_msec_t                shutdown_timeout;
 
-    ngx_int_t                 worker_processes;
+    ngx_int_t                 worker_processes;         // worker进程标志位
     ngx_int_t                 debug_points;
 
     ngx_int_t                 rlimit_nofile;

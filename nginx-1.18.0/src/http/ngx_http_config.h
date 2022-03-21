@@ -22,7 +22,9 @@ typedef struct {
 
 
 typedef struct {
+    //在解析http{...}内的配置项前回调
     ngx_int_t   (*preconfiguration)(ngx_conf_t *cf);
+    //解析完http{...}内的所有配置项后回调
     ngx_int_t   (*postconfiguration)(ngx_conf_t *cf);
 
     void       *(*create_main_conf)(ngx_conf_t *cf);

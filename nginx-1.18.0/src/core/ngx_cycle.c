@@ -213,7 +213,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     ngx_strlow(cycle->hostname.data, (u_char *) hostname, cycle->hostname.len);
 
 
-    if (ngx_cycle_modules(cycle) != NGX_OK) {				//赋值cycle里的模块结构体
+    if (ngx_cycle_modules(cycle) != NGX_OK) {				//把模块数组完整地拷贝到ngx_cycle_t里
         ngx_destroy_pool(pool);
         return NULL;
     }
